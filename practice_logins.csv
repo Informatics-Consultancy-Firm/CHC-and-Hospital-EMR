@@ -1,0 +1,14 @@
+username,password,full_name,role,facility,what_to_practise
+admin,xenjk4fx,System Administrator,Admin,Bo Government Hospital,"Sees every role, edits forms, sets the facility location, loads or removes demo clients"
+bogh.ro1,a7nawzrt,Mariama Koroma,Registration Officer,Bo Government Hospital,"Searches for the client (HIN, NIN, phone, or name and date of birth), registers new clients, sends them to triage"
+bogh.ro2,z84kqs3z,Abu Bakarr Jalloh,Registration Officer,Bo Government Hospital,"Searches for the client (HIN, NIN, phone, or name and date of birth), registers new clients, sends them to triage"
+bogh.tn1,vwfhr4vn,Fatmata Kamara,Triage Nurse,Bo Government Hospital,"Turns on duty, picks clients from the triage queue, records complaints, emergency signs and vital signs, sends them on"
+bogh.tn2,9k4zcqvy,Hawa Sesay,Triage Nurse,Bo Government Hospital,"Turns on duty, picks clients from the triage queue, records complaints, emergency signs and vital signs, sends them on"
+bogh.tn3,mkebvjqm,Isatu Bangura,Triage Nurse,Bo Government Hospital,"Turns on duty, picks clients from the triage queue, records complaints, emergency signs and vital signs, sends them on"
+bogh.cho1,5b8v7hqk,Mohamed Turay,Community Health Officer,Bo Government Hospital,Completes triage and routes the client to a service point
+bogh.cl1,mgfqjeud,Dr Alimamy Conteh,Clinician,Bo Government Hospital,"Turns on duty, picks clients from the consultation queue, consults, books follow-up, teleconsultation"
+bogh.cl2,gqtcp2td,Kadiatu Mansaray,Clinician,Bo Government Hospital,"Turns on duty, picks clients from the consultation queue, consults, books follow-up, teleconsultation"
+bogh.lab1,hdcwx5uw,Ibrahim Kargbo,Laboratory,Bo Government Hospital,"Receives lab orders, records test results"
+bogh.disp1,bbcavqpy,Aminata Fofanah,Dispenser,Bo Government Hospital,Dispenses medicines and records batch and expiry
+bogh.nm1,a7k83xp4,Christiana Lahai,Nurse / Midwife,Bo Government Hospital,"Assesses for referral, observes and transfers clients"
+bogh.chw1,y695c8wc,Sorie Kamara,Community Health Worker,Bo Government Hospital,Follows up clients in the community and records the outcome

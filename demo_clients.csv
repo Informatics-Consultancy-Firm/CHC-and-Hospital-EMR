@@ -1,0 +1,7 @@
+name,sex,date_of_birth,HIN,NIN,phone,practice_note
+Aminata Kamara,Female,1994-03-02,AK940302112435,SL940302112,076123456,"Found by HIN, NIN, phone or name"
+Mohamed Sesay,Male,1985-11-20,MS851120093015,SL851120930,078234567,Male: no pregnancy questions in triage
+Fatmata Bangura,Female,2001-07-14,FB010714101530,,077345678,No NIN: search by HIN or phone
+Musa Koroma,Male,2022-05-09,MK220509084500,,079456789,Child under 5: MUAC and child danger signs in triage; phone is the mother's
+Hawa Conteh,Female,1958-01-30 (estimated),HC580130120000,,,"No phone: search by name, any date in 1958 works"
+Mariatu Kamara,Female,1996-09-02,MK960902130245,SL960902130,076987654,"Searching ""Kamara"" by name finds two clients"
