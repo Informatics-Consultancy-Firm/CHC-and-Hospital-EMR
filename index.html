@@ -2450,12 +2450,12 @@ function autoCtx(){
   save();
 }
 function render(){
-  if (!USER && VIEW !== 'login') VIEW = 'login';
+  if (!USER && VIEW !== 'login') VIEW = 'home';
   if (['records','reports','compare','stage','d2push'].includes(VIEW)) autoCtx();
   document.body.classList.toggle('vdfull', VIEW === 'vdata');
   paintBar();
   document.body.dataset.view = VIEW;
-  $('#menuBtn').style.display = VIEW === 'form' || VIEW === 'login' ? 'none' : '';
+  $('#menuBtn').style.display = VIEW === 'form' || VIEW === 'login' || !USER ? 'none' : '';
   $('#foot').style.display = VIEW === 'form' ? 'none' : '';
   closeMenu();
   $$('#bnav button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === navOf(VIEW)));
@@ -5926,14 +5926,21 @@ function roleCard(R){
       '<span class="go" aria-hidden="true">›</span>' +
     '</span></button>';
 }
+/* where a role card leads once the user is signed in */
+function roleGo(id){
+  ROLE = id; const R = roleOf(id);
+  /* one form: the card opens it straight away; the Clinician keeps a page for its forms and registers */
+  if (R.id === 'ro'){ go('reg'); return; }
+  if (R.forms.length === 1 && !R.registers && !ROLE_QUEUE[R.id]){ const k = R.forms[0], dr = (DB.drafts || {})[k + '|new']; if (dr) resumeDraft(dr); else openForm(k); }
+  else go('role');
+}
+let LOGIN_ROLE = '';
 function vRoles(m){
-  const mine = ROLES.filter(r => userRoles().includes(r.id));
-  m.innerHTML = '<div class="lh">' + (mine.length > 1 ? 'Choose your role' : 'Your role') + '</div><div class="cards">' + mine.map(roleCard).join('') + '</div><div style="height:10px"></div>';
-  m.querySelectorAll('.rcard[data-role]').forEach(b => b.onclick = () => { ROLE = b.dataset.role; const R = roleOf(ROLE);
-    /* one form: the card opens it straight away; the Clinician keeps a page for its forms and registers */
-    if (R.id === 'ro'){ go('reg'); return; }
-    if (R.forms.length === 1 && !R.registers && !ROLE_QUEUE[R.id]){ const k = R.forms[0], dr = (DB.drafts || {})[k + '|new']; if (dr) resumeDraft(dr); else openForm(k); }
-    else go('role'); });
+  m.innerHTML = '<div class="lh">Choose your role</div><div class="cards">' + ROLES.map(roleCard).join('') + '</div><div style="height:10px"></div>';
+  m.querySelectorAll('.rcard[data-role]').forEach(b => b.onclick = () => {
+    const id = b.dataset.role;
+    if (USER && userRoles().includes(id)) return roleGo(id);
+    LOGIN_ROLE = id; go('login'); });
 }
 /* ===================== ROLE PAGE ===================== */
 function wfRecLine(r){
@@ -6747,10 +6754,14 @@ async function loadUsers(){
 }
 const roleNames = u => u.admin ? 'Admin' : u.roles.map(id => (roleOf(id) || {}).name).filter(Boolean).join(', ');
 function vLogin(m){
-  m.innerHTML = '<div class="login card"><h1>Sign in</h1><p class="muted">Use the username and password given to you by the EMR administrator.</p>' +
+  const LR = roleOf(LOGIN_ROLE);
+  m.innerHTML = '<button class="back" id="lgbk">‹ All roles</button>' +
+    (LR ? '<div class="rolebar" style="--c:' + LR.col + '"><span class="rb big" style="--c:' + LR.col + ';--ct:' + LR.ink + '">' + esc(LR.short) + '</span><span class="rt"><b>' + esc(LR.name) + '</b><small>' + esc(LR.lead) + '</small></span></div>' : '') +
+    '<div class="login card"><h1>Sign in' + (LR ? ' as ' + esc(LR.name) : '') + '</h1><p class="muted">' + (USER ? esc(USER.name) + ' is signed in as ' + esc(roleNames(USER)) + '. Signing in here changes the user on this device. ' : '') + 'Use the username and password given to you by the EMR administrator.</p>' +
     '<label for="lgu">Username</label><input id="lgu" autocomplete="username" autocapitalize="none" spellcheck="false">' +
     '<label for="lgp">Password</label><div class="pidrow"><input id="lgp" type="password" autocomplete="current-password"><button type="button" class="btn sec sm" id="lgs">Show</button></div>' +
     '<p class="lgerr" id="lge"></p><button class="btn" id="lgo" style="width:100%">Sign in</button></div>';
+  $('#lgbk').onclick = () => go('home');
   $('#lgs').onclick = () => { const p = $('#lgp'); p.type = p.type === 'password' ? 'text' : 'password'; $('#lgs').textContent = p.type === 'password' ? 'Show' : 'Hide'; };
   const go2 = async () => {
     const un = $('#lgu').value.trim().toLowerCase(), pw = $('#lgp').value;
@@ -6762,16 +6773,14 @@ function vLogin(m){
     if (!ok){ $('#lge').textContent = 'The username or the password is not right'; $('#lgo').disabled = false; return; }
     const R = rolesOf(u.role);
     if (!R.admin && !R.roles.length){ $('#lge').textContent = 'No role is set for this user in users.csv. Ask the administrator.'; $('#lgo').disabled = false; return; }
+    if (LOGIN_ROLE && !R.admin && !R.roles.includes(LOGIN_ROLE)){ $('#lge').textContent = 'This user is not a ' + roleOf(LOGIN_ROLE).name + '. Go back and choose your own role.'; $('#lgo').disabled = false; return; }
+    if (USER && USER.username !== u.username){ Object.keys(DB.me || {}).concat(userRoles()).forEach(role => { const x = myName(role) && DB.recs.find(r => r.reg === 'wS' && r.data.role === role && r.data.staffName === myName(role) && r.data.facility === qFacility()); if (x && x.data.onDuty === 'Yes'){ Object.assign(x.data, { onDuty: 'No', dutySince: '' }); touch(x); } }); DB.me = {}; }
     USER = DB.session = { username: u.username, name: u.name || u.username, roles: R.roles, admin: R.admin, district: u.district, chiefdom: u.chiefdom, facility: u.facility, ftype: u.ftype, phone: u.phone, at: nowIso() };
     /* the user's facility fills every form */
     const loc = { district: u.district, chiefdom: u.chiefdom, facility: u.facility, ftype: u.ftype };
     if (u.facility){ Object.assign(DB.ctx, loc); DB.lastLoc = Object.assign({}, DB.lastLoc || {}, loc); }
     save(); paintUser();
-    const mine = USER.admin ? [] : USER.roles;
-    if (mine.length === 1){ ROLE = mine[0]; const R0 = roleOf(ROLE);
-      if (R0.id === 'ro'){ go('reg'); return; }
-      if (R0.forms.length === 1 && !R0.registers && !ROLE_QUEUE[R0.id]){ go('home'); return; } go('role'); }
-    else go('home');
+    if (LOGIN_ROLE) roleGo(LOGIN_ROLE); else go('home');
   };
   $('#lgo').onclick = go2; $('#lgp').onkeydown = e => { if (e.key === 'Enter') go2(); };
   setTimeout(() => { const i = $('#lgu'); if (i) i.focus(); }, 50);
@@ -6786,7 +6795,7 @@ function signOut(){
     '<div class="row"><button class="btn sec" data-close>Stay signed in</button><button class="btn danger" id="soy">Sign out</button></div>');
   $('#soy').onclick = () => {
     Object.keys(DB.me || {}).forEach(role => { const s = myStaffRec(role); if (s && s.data.onDuty === 'Yes'){ Object.assign(s.data, { onDuty: 'No', dutySince: '' }); touch(s); } });
-    USER = null; DB.session = null; DB.me = {}; save(); closeSheet(true); paintUser(); go('login');
+    USER = null; DB.session = null; DB.me = {}; save(); closeSheet(true); paintUser(); go('home');
   };
 }
 /* the roles this user can open */
